@@ -1,0 +1,388 @@
+# Dangerous Functions Configuration
+# Each function specifies which arguments should be checked for taint
+# arg_checks: list of argument indices to check (0-based)
+# check_type:
+#   - "source" = argument is a taint source (pointer to data)
+#   - "format" = format string argument (critical if tainted)
+#   - "dest" = destination buffer (check for overflow if writing tainted data)
+#   - "exec" = execution command (critical if tainted)
+
+# Memory Operations - Buffer Overflows
+memory_operations:
+  strcpy:
+    enabled: true
+    risk: critical
+    description: "Unbounded string copy - classic buffer overflow"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 1
+        type: "source"
+        description: "source string"
+
+  strcat:
+    enabled: true
+    risk: critical
+    description: "Unbounded string concatenation"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 1
+        type: "source"
+        description: "source string"
+
+  gets:
+    enabled: true
+    risk: critical
+    description: "No bounds checking - always dangerous"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+
+  sprintf:
+    enabled: true
+    risk: critical
+    description: "Unbounded formatted string output"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 1
+        type: "format"
+        description: "format string"
+
+  vsprintf:
+    enabled: true
+    risk: critical
+    description: "Unbounded formatted string output (varargs)"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 1
+        type: "format"
+        description: "format string"
+
+  memcpy:
+    enabled: true
+    risk: high
+    description: "Memory copy - overflow if size is wrong"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 1
+        type: "source"
+        description: "source buffer"
+      - index: 2
+        type: "source"
+        description: "size parameter"
+
+  memmove:
+    enabled: true
+    risk: high
+    description: "Memory move - overflow if size is wrong"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 1
+        type: "source"
+        description: "source buffer"
+      - index: 2
+        type: "source"
+        description: "size parameter"
+
+# Format String Vulnerabilities
+format_string:
+  printf:
+    enabled: true
+    risk: high
+    description: "Format string vulnerability if format is user-controlled"
+    arg_checks:
+      - index: 0
+        type: "format"
+        description: "format string"
+
+  fprintf:
+    enabled: true
+    risk: high
+    description: "Format string vulnerability if format is user-controlled"
+    arg_checks:
+      - index: 1
+        type: "format"
+        description: "format string"
+
+  snprintf:
+    enabled: true
+    risk: medium
+    description: "Safer but still risky with tainted format string"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+      - index: 2
+        type: "format"
+        description: "format string"
+
+  vprintf:
+    enabled: true
+    risk: high
+    description: "Varargs format string"
+    arg_checks:
+      - index: 0
+        type: "format"
+        description: "format string"
+
+  vfprintf:
+    enabled: true
+    risk: high
+    description: "Varargs format string to file"
+    arg_checks:
+      - index: 1
+        type: "format"
+        description: "format string"
+
+# Command Execution
+command_execution:
+  system:
+    enabled: true
+    risk: critical
+    description: "Command execution - RCE if tainted"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "command string"
+
+  popen:
+    enabled: true
+    risk: critical
+    description: "Command execution via pipe"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "command string"
+
+  execve:
+    enabled: true
+    risk: critical
+    description: "Direct program execution"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "program path"
+      - index: 1
+        type: "exec"
+        description: "arguments array"
+
+  execl:
+    enabled: true
+    risk: critical
+    description: "Execute with argument list"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "program path"
+
+  execlp:
+    enabled: true
+    risk: critical
+    description: "Execute with PATH search"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "program name"
+
+  execv:
+    enabled: true
+    risk: critical
+    description: "Execute with argument vector"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "program path"
+      - index: 1
+        type: "exec"
+        description: "arguments array"
+
+  execvp:
+    enabled: true
+    risk: critical
+    description: "Execute with PATH search and argument vector"
+    arg_checks:
+      - index: 0
+        type: "exec"
+        description: "program name"
+      - index: 1
+        type: "exec"
+        description: "arguments array"
+
+# File Operations
+file_operations:
+  fopen:
+    enabled: true
+    risk: medium
+    description: "File open - path traversal if tainted"
+    arg_checks:
+      - index: 0
+        type: "source"
+        description: "file path"
+      - index: 1
+        type: "source"
+        description: "mode string"
+
+  open:
+    enabled: true
+    risk: medium
+    description: "File open - path traversal if tainted"
+    arg_checks:
+      - index: 0
+        type: "source"
+        description: "file path"
+
+  fread:
+    enabled: true
+    risk: low
+    description: "File read - potential info leak"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+
+  fgets:
+    enabled: true
+    risk: low
+    description: "File/stream read with bounds"
+    arg_checks:
+      - index: 0
+        type: "dest"
+        description: "destination buffer"
+
+  fwrite:
+    enabled: true
+    risk: medium
+    description: "File write - data leak if tainted"
+    arg_checks:
+      - index: 0
+        type: "source"
+        description: "source buffer"
+
+# Network Operations
+network_operations:
+  send:
+    enabled: true
+    risk: high
+    description: "Network send - data leak if sensitive tainted data"
+    arg_checks:
+      - index: 1
+        type: "source"
+        description: "send buffer"
+
+  sendto:
+    enabled: true
+    risk: high
+    description: "Network send with destination"
+    arg_checks:
+      - index: 1
+        type: "source"
+        description: "send buffer"
+
+  recv:
+    enabled: true
+    risk: low
+    description: "Network receive - marks data as tainted"
+    arg_checks:
+      - index: 1
+        type: "dest"
+        description: "receive buffer"
+
+  recvfrom:
+    enabled: true
+    risk: low
+    description: "Network receive with source"
+    arg_checks:
+      - index: 1
+        type: "dest"
+        description: "receive buffer"
+
+  write:
+    enabled: true
+    risk: medium
+    description: "Generic write - data leak"
+    arg_checks:
+      - index: 1
+        type: "source"
+        description: "write buffer"
+
+  read:
+    enabled: true
+    risk: low
+    description: "Generic read - marks data as tainted"
+    arg_checks:
+      - index: 1
+        type: "dest"
+        description: "read buffer"
+
+# String Scanning/Parsing
+string_operations:
+  scanf:
+    enabled: true
+    risk: high
+    description: "Input scanning - buffer overflow risk"
+    arg_checks:
+      - index: 0
+        type: "format"
+        description: "format string"
+
+  sscanf:
+    enabled: true
+    risk: high
+    description: "String scanning - buffer overflow risk"
+    arg_checks:
+      - index: 0
+        type: "source"
+        description: "input string"
+      - index: 1
+        type: "format"
+        description: "format string"
+
+  fscanf:
+    enabled: true
+    risk: high
+    description: "File scanning - buffer overflow risk"
+    arg_checks:
+      - index: 1
+        type: "format"
+        description: "format string"
+
+  vscanf:
+    enabled: true
+    risk: high
+    description: "Varargs scanning"
+    arg_checks:
+      - index: 0
+        type: "format"
+        description: "format string"
+
+# SQL Operations (if dynamic linking allows)
+sql_operations:
+  mysql_query:
+    enabled: false
+    risk: critical
+    description: "MySQL query - SQL injection if tainted"
+    arg_checks:
+      - index: 1
+        type: "exec"
+        description: "query string"
+
+  sqlite3_exec:
+    enabled: false
+    risk: critical
+    description: "SQLite execution - SQL injection if tainted"
+    arg_checks:
+      - index: 1
+        type: "exec"
+        description: "SQL statement"

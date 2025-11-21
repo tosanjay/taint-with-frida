@@ -1,0 +1,21 @@
+# Compiled binaries
+example-vuln
+*.o
+*.out
+
+# Generated config (from YAML)
+dangerous-functions.json
+
+# Python
+__pycache__/
+*.pyc
+
+# Frida
+*.dylib
+*.so
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
